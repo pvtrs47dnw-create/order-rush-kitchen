@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#241b18">
+<title>注文ラッシュ！キッチン</title>
+<style>
+:root{--ink:#29201c;--cream:#fff8ed;--tomato:#d94b36;--gold:#f4bd55;--green:#38785a;--muted:#82736a}
+*{box-sizing:border-box}body{margin:0;background:#f3e8d8;color:var(--ink);font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif}
+button{font:inherit;cursor:pointer;touch-action:manipulation}
+.app{max-width:720px;margin:auto;min-height:100dvh;background:var(--cream);box-shadow:0 0 30px #4a302014;display:flex;flex-direction:column}
+header{background:var(--ink);color:#fff8ed;padding:15px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.logo{font-weight:900;letter-spacing:.02em;font-size:19px}.logo small{display:block;font-size:11px;color:#e8c9a8;font-weight:600;letter-spacing:.12em}
+.pill{background:#42332d;border-radius:999px;padding:7px 11px;font-size:13px;white-space:nowrap}
+main{padding:16px;display:flex;flex-direction:column;gap:14px;flex:1}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:#f1e2cf;border-radius:13px;padding:10px;text-align:center}.stat span{display:block;font-size:11px;color:var(--muted)}.stat strong{font-size:21px}
+.timerbar{height:7px;border-radius:99px;background:#e6d7c8;overflow:hidden;margin-top:8px}.timerfill{height:100%;width:100%;background:var(--green);transition:width .25s linear}
+.order{background:#fff;border:2px solid #ead9c7;border-radius:18px;padding:14px;display:grid;grid-template-columns:108px 1fr;gap:14px;align-items:center}
+.dishphoto{background:linear-gradient(145deg,#f6dfbc,#e9c59a);border-radius:14px;min-height:108px;display:grid;place-items:center;font-size:63px;box-shadow:inset 0 0 0 1px #ffffff99}
+.eyebrow{font-size:11px;letter-spacing:.12em;color:var(--tomato);font-weight:900}.order h2{font-size:21px;margin:3px 0}.order p{margin:3px 0 0;color:var(--muted);font-size:13px;line-height:1.5}
+.sectiontitle{font-weight:900;font-size:15px;display:flex;justify-content:space-between;align-items:center}
+.sectiontitle small{font-weight:500;color:var(--muted);font-size:12px}
+.ingredients{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ingredient{background:#fff;border:1.5px solid #ead9c7;border-radius:13px;padding:10px 3px 9px;display:flex;flex-direction:column;align-items:center;gap:5px;min-height:86px;color:var(--ink)}
+.ingredient .emoji{font-size:29px}.ingredient .name{font-size:11px;font-weight:800}.ingredient.selected{border-color:var(--green);background:#e5f1e8;box-shadow:0 0 0 2px #38785a20}
+.steps{display:flex;gap:7px}.step{flex:1;border:1.5px solid #ead9c7;background:#fff;border-radius:12px;padding:10px 4px;text-align:center;font-size:12px;font-weight:800;color:var(--muted)}.step.active{background:#fff0d1;border-color:var(--gold);color:#75511a}.step.done{background:#e5f1e8;border-color:#9ac5a9;color:#285d41}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}.btn{border:0;border-radius:13px;padding:14px 10px;font-weight:900}.btn.primary{background:var(--tomato);color:white;box-shadow:0 4px 0 #a93325}.btn.secondary{background:#ead9c7;color:var(--ink)}.btn:disabled{opacity:.45;box-shadow:none;cursor:not-allowed}
+.feedback{min-height:25px;text-align:center;font-weight:800;color:var(--green);font-size:14px}.feedback.bad{color:var(--tomato)}
+footer{padding:12px 16px 20px;text-align:center;font-size:11px;color:var(--muted)}
+.overlay{position:fixed;inset:0;background:#1c1512c9;display:grid;place-items:center;padding:22px;z-index:5}.modal{width:min(440px,100%);background:var(--cream);border-radius:22px;padding:25px;text-align:center;box-shadow:0 20px 70px #0005}.modal .hero{font-size:64px}.modal h1{margin:8px 0;font-size:27px}.modal p{color:var(--muted);line-height:1.65}.modal .btn{width:100%;margin-top:9px}
+.hidden{display:none!important}
+@media(min-width:560px){main{padding:22px}.ingredients{gap:10px}.ingredient{min-height:96px}.order{grid-template-columns:130px 1fr}.dishphoto{min-height:125px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div class="logo">🍳 注文ラッシュ！キッチン<small>ORDER RUSH · KITCHEN</small></div><div class="pill" id="roundPill">DAY 1 · 注文 1/5</div></header>
+<main>
+  <section class="stats">
+    <div class="stat"><span>スコア</span><strong id="score">0</strong></div>
+    <div class="stat"><span>残り時間</span><strong id="time">60</strong></div>
+    <div class="stat"><span>コンボ</span><strong id="combo">0</strong></div>
+  </section>
+  <div class="timerbar"><div class="timerfill" id="timerfill"></div></div>
+  <section class="order">
+    <div class="dishphoto" id="dishEmoji">🍳</div>
+    <div><div class="eyebrow">お客様の注文</div><h2 id="dishName">ふわとろオムライス</h2><p id="dishDesc">材料を選び、調理工程を順番に進めよう！</p><p><b>報酬：<span id="reward">100</span> pt</b></p></div>
+  </section>
+  <div class="sectiontitle">① 材料を選ぼう <small>必要な材料を全部タップ</small></div>
+  <section class="ingredients" id="ingredients"></section>
+  <div class="sectiontitle">② 調理工程 <small>正しい順番でタップ</small></div>
+  <section class="steps" id="steps"></section>
+  <div class="feedback" id="feedback" aria-live="polite">材料をそろえて、調理スタート！</div>
+  <section class="actions">
+    <button class="btn secondary" id="resetBtn">材料をリセット</button>
+    <button class="btn primary" id="cookBtn">調理する！ 🔥</button>
+  </section>
+</main>
+<footer>試作品 v1.0 · 料理はゲーム内の架空レシピです</footer>
+</div>
+<div class="overlay" id="overlay">
+  <div class="modal" id="startModal">
+    <div class="hero">👨‍🍳</div><h1>注文ラッシュ！キッチン</h1>
+    <p>60秒で何品作れる？<br>注文どおりに材料を選び、調理工程をクリアしてお客さんに料理を届けよう！</p>
+    <button class="btn primary" id="startBtn">営業スタート！</button>
+  </div>
+  <div class="modal hidden" id="resultModal">
+    <div class="hero">🏆</div><h1>本日の営業終了！</h1>
+    <p id="resultText"></p><button class="btn primary" id="againBtn">もう一度プレイ</button>
+  </div>
+</div>
+<script>
+const allIngredients=[
+ {id:"rice",name:"ごはん",emoji:"🍚"},{id:"egg",name:"たまご",emoji:"🥚"},{id:"chicken",name:"鶏肉",emoji:"🍗"},{id:"onion",name:"玉ねぎ",emoji:"🧅"},
+ {id:"ketchup",name:"ケチャップ",emoji:"🍅"},{id:"noodle",name:"麺",emoji:"🍜"},{id:"pork",name:"チャーシュー",emoji:"🥩"},{id:"broth",name:"スープ",emoji:"🥣"},
+ {id:"green",name:"ねぎ",emoji:"🥬"},{id:"flour",name:"小麦粉",emoji:"🌾"},{id:"milk",name:"ミルク",emoji:"🥛"},{id:"berry",name:"いちご",emoji:"🍓"},
+ {id:"cream",name:"ホイップ",emoji:"🍦"},{id:"bread",name:"パン",emoji:"🍞"},{id:"lettuce",name:"レタス",emoji:"🥬"},{id:"beef",name:"牛肉",emoji:"🥩"}
+];
+const recipes=[
+ {name:"ふわとろオムライス",emoji:"🍳",desc:"卵とチキンライスの定番人気！",reward:100,ingredients:["rice","egg","chicken","ketchup","onion"],steps:["切る","炒める","焼く"]},
+ {name:"特製しょうゆラーメン",emoji:"🍜",desc:"熱々スープに麺と具材を盛りつけよう。",reward:120,ingredients:["noodle","pork","broth","green"],steps:["ゆでる","温める","盛る"]},
+ {name:"いちごパンケーキ",emoji:"🥞",desc:"ふわふわ生地に甘いトッピング！",reward:110,ingredients:["flour","egg","milk","berry","cream"],steps:["混ぜる","焼く","飾る"]},
+ {name:"てりやきバーガー",emoji:"🍔",desc:"ジューシーなお肉とシャキシャキ野菜。",reward:130,ingredients:["bread","beef","lettuce","onion"],steps:["切る","焼く","挟む"]},
+ {name:"チキンライス",emoji:"🍗",desc:"香ばしく炒めて、おいしく仕上げよう。",reward:90,ingredients:["rice","chicken","onion","ketchup"],steps:["切る","炒める","盛る"]}
+];
+let score=0,time=60,combo=0,orderIndex=0,selected=new Set(),stepIndex=0,started=false,ended=false,timer=null,orderList=[];
+const $=id=>document.getElementById(id);
+function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
+function setFeedback(msg,bad=false){$("feedback").textContent=msg;$("feedback").classList.toggle("bad",bad)}
+function newOrder(){selected.clear();stepIndex=0;const r=orderList[orderIndex%orderList.length];$("dishEmoji").textContent=r.emoji;$("dishName").textContent=r.name;$("dishDesc").textContent=r.desc;$("reward").textContent=r.reward;$("roundPill").textContent=`DAY 1 · 注文 ${Math.min(orderIndex+1,5)}/5`;renderIngredients();renderSteps();setFeedback("材料をそろえて、調理スタート！")}
+function renderIngredients(){
+ const r=orderList[orderIndex%orderList.length];const relevant=shuffle([...new Set([...r.ingredients,...shuffle(allIngredients.filter(i=>!r.ingredients.includes(i.id)).map(i=>i.id)).slice(0,3)])]);
+ $("ingredients").innerHTML="";
+ relevant.forEach(id=>{const item=allIngredients.find(i=>i.id===id);const b=document.createElement("button");b.className="ingredient"+(selected.has(id)?" selected":"");b.innerHTML=`<span class="emoji">${item.emoji}</span><span class="name">${item.name}</span>`;b.onclick=()=>{if(!started||ended)return;if(selected.has(id))selected.delete(id);else selected.add(id);renderIngredients()};$("ingredients").appendChild(b)});
+}
+function renderSteps(){const r=orderList[orderIndex%orderList.length];$("steps").innerHTML="";r.steps.forEach((s,i)=>{const b=document.createElement("button");b.className="step"+(i<stepIndex?" done":i===stepIndex?" active":"");b.textContent=(i<stepIndex?"✓ ":"")+s;b.onclick=()=>{if(!started||ended)return;if(i===stepIndex){stepIndex++;renderSteps();setFeedback(stepIndex===r.steps.length?"工程OK！調理ボタンで提供しよう！":`いいね！次は「${r.steps[stepIndex]}」`)}else{combo=0;$("combo").textContent=combo;setFeedback("順番が違うよ！光っている工程をタップしてね。",true)}};$("steps").appendChild(b)})}
+function updateStats(){$("score").textContent=score;$("time").textContent=time;$("combo").textContent=combo;$("timerfill").style.width=(time/60*100)+"%";$("timerfill").style.background=time<=10?"#d94b36":"#38785a"}
+function cook(){
+ if(!started||ended)return;const r=orderList[orderIndex%orderList.length];const exact=r.ingredients.every(i=>selected.has(i))&&[...selected].every(i=>r.ingredients.includes(i));
+ if(!exact){combo=0;updateStats();setFeedback("材料が注文と違うみたい！必要な材料だけを選ぼう。",true);return}
+ if(stepIndex<r.steps.length){setFeedback("調理工程がまだ残っているよ！順番に全部タップしてね。",true);return}
+ const points=r.reward+Math.min(combo*10,50);score+=points;combo++;orderIndex++;updateStats();setFeedback(`提供成功！ +${points} pt 🎉`);if(orderIndex%5===0){orderList=shuffle(recipes);setTimeout(()=>{if(!ended)newOrder()},650)}else setTimeout(()=>{if(!ended)newOrder()},650);
+}
+function endGame(){ended=true;started=false;clearInterval(timer);$("resultText").innerHTML=`スコア：<b>${score} pt</b><br>完成した注文：<b>${orderIndex} 品</b><br>${score>=500?"すごい！一流シェフの腕前！":score>=250?"いい腕前！また挑戦してみよう！":"まずは練習！次はもっと注文をこなそう！"}`;$("startModal").classList.add("hidden");$("resultModal").classList.remove("hidden");$("overlay").classList.remove("hidden")}
+function startGame() {score=0;time=60;combo=0;orderIndex=0;stepIndex=0;selected.clear();started=true;ended=false;orderList=shuffle(recipes);$("overlay").classList.add("hidden");$("resultModal").classList.add("hidden");$("startModal").classList.remove("hidden");newOrder();updateStats();clearInterval(timer);timer=setInterval(()=>{if(!started||ended)return;time--;updateStats();if(time<=0)endGame()},1000)}
+$("startBtn").onclick=startGame;$("againBtn").onclick=startGame;$("cookBtn").onclick=cook;$("resetBtn").onclick=()=>{selected.clear();renderIngredients();setFeedback("材料をリセットしたよ。選び直そう！")};
+newOrder();updateStats();
+</script>
+</body>
+</html>
